@@ -19,7 +19,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
 
 signals:
-    QPoint onTouchpadMoved();
+    QPoint TouchpadMoved();
 
 private:
     Ui::MainWindow *ui;
