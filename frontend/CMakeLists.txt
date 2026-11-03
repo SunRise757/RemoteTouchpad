@@ -1,30 +1,41 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.19)
+project(frontend LANGUAGES CXX)
 
-project(frontend VERSION 0.1 LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
 
 qt_standard_project_setup()
 
-add_subdirectory(mobile)
-add_subdirectory(pc)
-add_subdirectory(shared)
+qt_add_executable(frontend
+    mobile/main.cpp
+    mobile/mainwindow.cpp
+    mobile/mainwindow.h
+    mobile/mainwindow.ui
 
-target_link_libraries(frontend PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-
-set_target_properties(frontend PROPERTIES
-    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
+    mobile/components/Scrollbar.cpp
+    mobile/components/Scrollbar.h
+    mobile/components/Scrollbar.ui
 )
 
-include(GNUInstallDirs)
+target_include_directories(frontend PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/mobile"
+    "${CMAKE_CURRENT_SOURCE_DIR}/mobile/components"
+)
+
+target_link_libraries(frontend
+    PRIVATE
+        Qt::Core
+        Qt::Widgets
+)
+
 install(TARGETS frontend
-    BUNDLE DESTINATION .
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    BUNDLE  DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+qt_generate_deploy_app_script(
+    TARGET frontend
+    OUTPUT_SCRIPT deploy_script
+    NO_UNSUPPORTED_PLATFORM_ERROR
+)
+install(SCRIPT ${deploy_script})

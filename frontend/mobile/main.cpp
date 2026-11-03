@@ -1,5 +1,5 @@
 #include <QApplication>
-#include <QWebSocket>
+//#include <QWebSocket>
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])
