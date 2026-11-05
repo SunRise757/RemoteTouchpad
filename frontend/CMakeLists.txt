@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(frontend LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets WebSockets)
 
 qt_standard_project_setup()
 
@@ -25,6 +25,7 @@ target_link_libraries(frontend
     PRIVATE
         Qt::Core
         Qt::Widgets
+        Qt::WebSockets
 )
 
 install(TARGETS frontend
