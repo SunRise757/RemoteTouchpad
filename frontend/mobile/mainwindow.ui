@@ -19,7 +19,10 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
+      <item>
+       <widget class="QLineEdit" name="lineEdit"/>
+      </item>
       <item>
        <spacer name="verticalSpacer">
         <property name="orientation">
@@ -34,7 +37,17 @@
        </spacer>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="mouseButtonsLayout" stretch="10,1,10">
+       <layout class="QHBoxLayout" name="mouseButtonsLayout" stretch="1,10,1,10">
+        <item>
+         <widget class="QPushButton" name="openKeyboard">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset theme="QIcon::ThemeIcon::InputKeyboard"/>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QPushButton" name="buttonLeftClick">
           <property name="sizePolicy">
@@ -96,7 +109,6 @@
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <customwidgets>
   <customwidget>

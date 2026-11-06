@@ -14,6 +14,8 @@ qt_add_executable(frontend
     mobile/components/Scrollbar.cpp
     mobile/components/Scrollbar.h
     mobile/components/Scrollbar.ui
+    mobile/serverconnection.h
+    mobile/serverconnection.cpp
 )
 
 target_include_directories(frontend PRIVATE
