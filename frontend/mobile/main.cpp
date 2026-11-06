@@ -2,6 +2,9 @@
 #include <QWebSocket>
 #include <emscripten/val.h>
 #include <string>
+#include <QJsonObject>
+#include <QJsonDocument>
+
 #include "mainwindow.h"
 
 QUrl getWebsocketUrl(){
@@ -34,6 +37,44 @@ int main(int argc, char *argv[])
     QObject::connect(socket, &QWebSocket::errorOccurred, [socket](QAbstractSocket::SocketError error) {
         qDebug() << "Socket error:" << socket->errorString();
     });
+
+
+//ui buttons connections
+    QObject::connect(&w, &MainWindow::TouchpadMoved,
+        &w, [socket](QPoint delta){
+            QJsonObject jsonObj{
+                {"type", "mouse"},
+                {"dx", delta.x()},
+                {"dy", delta.y()}
+            };
+            QJsonDocument doc(jsonObj);
+            QString strJson(doc.toJson(QJsonDocument::Compact));
+            socket->sendTextMessage(strJson);
+    });
+
+    QObject::connect(&w, &MainWindow::Scrolled,
+        &w, [socket](float delta){
+            QJsonObject jsonObj{
+                {"type", "scroll"},
+                {"dy", delta}
+            };
+            QJsonDocument doc(jsonObj);
+            QString strJson(doc.toJson(QJsonDocument::Compact));
+            socket->sendTextMessage(strJson);
+    });
+
+    QObject::connect(&w, &MainWindow::ButtonClicked,
+        &w, [socket](QString name){
+            QJsonObject jsonObj{
+                {"type", "button"},
+                {"name", name}
+            };
+            QJsonDocument doc(jsonObj);
+            QString strJson(doc.toJson(QJsonDocument::Compact));
+            socket->sendTextMessage(strJson);
+    });
+
+    socket->open(getWebsocketUrl());
 
     return a.exec();
 }

@@ -17,10 +17,13 @@ public:
     ~Scrollbar();
 protected:
     void mouseMoveEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
 signals:
-    float Scrolled();
+    void Scrolled(float delta);
 
 private:
+    QPoint lastMousePosition;
     Ui::Scrollbar *ui;
 };
