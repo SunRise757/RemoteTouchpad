@@ -8,15 +8,18 @@ import (
 )
 
 func launchServer() {
-	//dir := "../frontend/build/WebAssembly_Qt_6_7_3_single_threaded_Debug"
-	dir := "../frontend/build/WebAssembly_Qt_6_7_3_single_threaded_Debug"
+	dir := "../build/mobile"
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", wsHandler)
 	mux.Handle("/", http.FileServer(http.Dir(dir)))
 
 	log.Println("Serving app at http://localhost:8080")
+
+	log.Println(getLanIp())
+
 	log.Fatal(http.ListenAndServe(":8080", mux))
+
 }
 
 var upgrader = websocket.Upgrader{

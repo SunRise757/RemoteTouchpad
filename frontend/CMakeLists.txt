@@ -1,44 +1,25 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.21)
 project(frontend LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets WebSockets)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-qt_standard_project_setup()
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-qt_add_executable(frontend
-    mobile/main.cpp
-    mobile/mainwindow.cpp
-    mobile/mainwindow.h
-    mobile/mainwindow.ui
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
-    mobile/components/Scrollbar.cpp
-    mobile/components/Scrollbar.h
-    mobile/components/Scrollbar.ui
-    mobile/serverconnection.h
-    mobile/serverconnection.cpp
-)
+option(BUILD_MOBILE "Build the Qt/WebAssembly client" ON)
+option(BUILD_PC "Build the native Linux app" OFF)
 
-target_include_directories(frontend PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/mobile"
-    "${CMAKE_CURRENT_SOURCE_DIR}/mobile/components"
-)
+add_subdirectory(shared)
 
-target_link_libraries(frontend
-    PRIVATE
-        Qt::Core
-        Qt::Widgets
-        Qt::WebSockets
-)
+if(BUILD_MOBILE)
+    add_subdirectory(mobile)
+endif()
 
-install(TARGETS frontend
-    BUNDLE  DESTINATION .
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
-
-qt_generate_deploy_app_script(
-    TARGET frontend
-    OUTPUT_SCRIPT deploy_script
-    NO_UNSUPPORTED_PLATFORM_ERROR
-)
-install(SCRIPT ${deploy_script})
+if(BUILD_PC)
+    add_subdirectory(pc)
+endif()
