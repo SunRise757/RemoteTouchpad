@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
-	"math"
 	"os/exec"
 	"strconv"
 )
@@ -51,7 +51,7 @@ func buttonDecoder(message string) {
 }
 
 func typeString(str string) {
-	cmd := exec.Command("wl-copy", str)
+	cmd := exec.Command("cb", "copy", str)
 	err := cmd.Run()
 	if err != nil {
 		log.Printf("Error: %v\n", err)
@@ -65,49 +65,68 @@ func typeString(str string) {
 }
 
 func mouseMove(x, y int) {
-	cmd := exec.Command("xdotool", "mousemove_relative", "--",
+	cmd := exec.Command("ydotool", "mousemove", "--",
 		strconv.Itoa(x*min(intAbs(x), 7)),
 		strconv.Itoa(y*min(intAbs(y), 7)))
-	out, err := cmd.CombinedOutput()
+	err := cmd.Run()
 	if err != nil {
-		log.Printf("Error: %v\n%s", err, out)
+		log.Printf("Error: %v\n", err)
 	}
 }
 
 func mouseScroll(x int) {
-	button := "5"
-	if x > 0 {
-		button = "4"
-	}
-	math.Abs(float64(x))
-
-	cmd := exec.Command("xdotool", "click", "--repeat", strconv.Itoa(int((math.Abs(float64(x))))), "--delay", "0", button)
-	out, err := cmd.CombinedOutput()
+	cmd := exec.Command("ydotool", "mousemove", "--wheel", "--",
+		"0",
+		strconv.Itoa(x*min(intAbs(x), 7)))
+	err := cmd.Run()
 	if err != nil {
-		log.Printf("Error: %v\n%s", err, out)
+		log.Printf("Error: %v\n", err)
 	}
 }
 
 func mouseClick(button int) {
-	cmd := exec.Command("xdotool", "click", strconv.Itoa(button))
-	out, err := cmd.CombinedOutput()
+	m := map[int]string{
+		1: "0x110",
+		2: "0x112",
+		3: "0x111",
+	}
+	cmd := exec.Command("ydotool", "key", m[button]+":1", m[button]+":0")
+	err := cmd.Run()
 	if err != nil {
-		log.Printf("Error: %v\n%s", err, out)
+		log.Printf("Error: %v\n", err)
 	}
 }
 
-func keyPress(key string) {
-	cmd := exec.Command("xdotool", "keydown", key)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("Error: %v\n%s", err, out)
+func checkDependencies() {
+	err := exec.Command("ydotool").Run()
+	if errors.Is(err, exec.ErrNotFound) {
+		log.Fatal("ydotool not found. Get it here: https://github.com/ReimuNotMoe/ydotool")
 	}
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = exec.Command("cb").Run()
+	if errors.Is(err, exec.ErrNotFound) {
+		log.Fatal("cb not found. Get it here: https://github.com/Slackadays/Clipboard")
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+/*
+func keyPress(key string) {
+	cmd := exec.Command("ydotool", "key", key + ":1")
+	err := cmd.Run()
+	if err != nil {
+		log.Printf("Error: %v\n", err)
+	}}
 }
 
 func keyRelease(key string) {
-	cmd := exec.Command("xdotool", "keyup", key)
-	out, err := cmd.CombinedOutput()
+	cmd := exec.Command("ydotool", "key", key + ":0")
+	err := cmd.Run()
 	if err != nil {
-		log.Printf("Error: %v\n%s", err, out)
+		log.Printf("Error: %v\n", err)
 	}
 }

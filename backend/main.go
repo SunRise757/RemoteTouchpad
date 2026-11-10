@@ -1,14 +1,16 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os/exec"
 )
 
 func main() {
+	checkDependencies()
+
 	cmd := exec.Command("ydotoold")
 	defer cmd.Cancel()
 	go cmd.Run()
 	launchServer()
-	fmt.Println("Hello, World!")
+	log.Println("Hello, World!")
 }

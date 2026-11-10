@@ -39,16 +39,20 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	for {
-		messageType, message, err := conn.ReadMessage()
+		//messageType, message, err := conn.ReadMessage()
+		_, message, err := conn.ReadMessage()
+
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		//log.Println("Received message:", string(message))
 		buttonDecoder(string(message))
-		if err := conn.WriteMessage(messageType, message); err != nil {
-			log.Println(err)
-			return
-		}
+		/*
+			log.Println("Received message:", string(message))
+			if err := conn.WriteMessage(messageType, message); err != nil {
+				log.Println(err)
+				return
+			}
+		*/
 	}
 }
