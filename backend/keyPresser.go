@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"math"
 	"os/exec"
@@ -43,20 +42,26 @@ func buttonDecoder(message string) {
 				mouseClick(3)
 			}
 		case "string":
-			s := data["string"].(string)
-			typeString(s)
+			str := data["string"].(string)
+			typeString(str)
 		case "key":
 			log.Println(data)
 		}
 	}
 }
 
-func typeString(s string) {
-	cmd := exec.Command("xdotool", "type", s)
-	out, err := cmd.CombinedOutput()
+func typeString(str string) {
+	cmd := exec.Command("wl-copy", str)
+	err := cmd.Run()
 	if err != nil {
-		fmt.Printf("Error: %v\n%s", err, out)
+		log.Printf("Error: %v\n", err)
 	}
+	cmd = exec.Command("ydotool", "key", "135.1", "135.0")
+	err = cmd.Run()
+	if err != nil {
+		log.Println("Error: %v\n")
+	}
+
 }
 
 func mouseMove(x, y int) {
@@ -65,7 +70,7 @@ func mouseMove(x, y int) {
 		strconv.Itoa(y*min(intAbs(y), 7)))
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error: %v\n%s", err, out)
+		log.Printf("Error: %v\n%s", err, out)
 	}
 }
 
@@ -79,7 +84,7 @@ func mouseScroll(x int) {
 	cmd := exec.Command("xdotool", "click", "--repeat", strconv.Itoa(int((math.Abs(float64(x))))), "--delay", "0", button)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error: %v\n%s", err, out)
+		log.Printf("Error: %v\n%s", err, out)
 	}
 }
 
@@ -87,7 +92,7 @@ func mouseClick(button int) {
 	cmd := exec.Command("xdotool", "click", strconv.Itoa(button))
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error: %v\n%s", err, out)
+		log.Printf("Error: %v\n%s", err, out)
 	}
 }
 
@@ -95,7 +100,7 @@ func keyPress(key string) {
 	cmd := exec.Command("xdotool", "keydown", key)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error: %v\n%s", err, out)
+		log.Printf("Error: %v\n%s", err, out)
 	}
 }
 
@@ -103,6 +108,6 @@ func keyRelease(key string) {
 	cmd := exec.Command("xdotool", "keyup", key)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error: %v\n%s", err, out)
+		log.Printf("Error: %v\n%s", err, out)
 	}
 }
