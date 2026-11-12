@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 
     ServerConnection serv;
 
-    QObject::connect(&w, &MainWindow::InputEvent,
+    QObject::connect(w.touchpad, &Touchpad::InputEvent,
         &w, [serv](QJsonObject event){
         serv.tryToReconnect();
 

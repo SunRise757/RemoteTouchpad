@@ -15,6 +15,11 @@ qt_add_executable(mobile
     components/Scrollbar.cpp
     components/Scrollbar.h
     components/Scrollbar.ui
+    
+    views/touchpad/Touchpad.cpp
+    views/touchpad/Touchpad.h
+    views/touchpad/Touchpad.ui
+    
     serverconnection.h
     serverconnection.cpp
 )
@@ -30,6 +35,8 @@ target_link_libraries(mobile
 target_include_directories(mobile PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/components"
+    "${CMAKE_CURRENT_SOURCE_DIR}/views"
+    "${CMAKE_CURRENT_SOURCE_DIR}/views/touchpad"
 )
 
 install(TARGETS mobile

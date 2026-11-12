@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QJsonObject>
 
-#include "Scrollbar.h"
+#include "Touchpad.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -19,24 +19,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-protected:
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    /*
-    void keyPressEvent(QKeyEvent *event) override;
-    void keyReleaseEvent(QKeyEvent *event) override;
-    */
-    void textEdited();
-signals:
-    /*void TouchpadMoved(QPoint delta);
-    void Scrolled(float delta);
-    void ButtonClicked(QString name);
-    */
-    void InputEvent(QJsonObject event);
+    Touchpad *touchpad;
 private:
-    QString lastSavedString;
-    QPoint lastMousePosition{0, 0};
-    qint64 lastMousePressTime;
     Ui::MainWindow *ui;
 };

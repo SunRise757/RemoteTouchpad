@@ -9,4 +9,7 @@ source /var/home/"$(whoami)"/emsdk/emsdk_env.sh
 /var/home/"$(whoami)"/Qt/6.7.3/wasm_singlethread/bin/qt-cmake -S $project_dir/frontend -B $project_dir/build/
 cmake --build /$project_dir/build/mobile --parallel
 
-go -C backend run .
+go -C backend build -o ../build/backend .
+
+#run
+./build/backend

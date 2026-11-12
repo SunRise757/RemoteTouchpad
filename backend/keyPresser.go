@@ -56,7 +56,7 @@ func typeString(str string) {
 	if err != nil {
 		log.Printf("Error: %v\n", err)
 	}
-	cmd = exec.Command("ydotool", "key", "135.1", "135.0")
+	cmd = exec.Command("ydotool", "key", "135:1", "135:0")
 	err = cmd.Run()
 	if err != nil {
 		log.Println("Error: %v\n")

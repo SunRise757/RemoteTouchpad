@@ -3,12 +3,17 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/gorilla/websocket"
 )
 
 func launchServer() {
-	dir := "../build/mobile"
+	path, _ := os.Executable()
+	dir := filepath.Dir(path) + "/mobile"
+
+	log.Println(dir)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", wsHandler)
