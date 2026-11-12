@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 func intAbs(num int) int {
@@ -51,15 +53,24 @@ func buttonDecoder(message string) {
 }
 
 func typeString(str string) {
-	cmd := exec.Command("cb", "copy", str)
-	err := cmd.Run()
+	var err error
+	switch strings.ToLower(os.Getenv("XDG_SESSION_TYPE")) {
+	case "wayland":
+		err = exec.Command("wl-copy", str).Run()
+	case "x11":
+		cmd := exec.Command("xclip", "-selection", "clipboard")
+		cmd.Stdin = strings.NewReader(str)
+		err = cmd.Run()
+	default:
+		return
+	}
 	if err != nil {
 		log.Printf("Error: %v\n", err)
 	}
-	cmd = exec.Command("ydotool", "key", "135:1", "135:0")
-	err = cmd.Run()
+
+	err = exec.Command("ydotool", "key", "29:1", "42:1", "47:1", "47:0", "42:0", "29:0").Run()
 	if err != nil {
-		log.Println("Error: %v\n")
+		log.Printf("ydotool error: %v", err)
 	}
 
 }
@@ -98,19 +109,29 @@ func mouseClick(button int) {
 }
 
 func checkDependencies() {
-	err := exec.Command("ydotool").Run()
+	cmdYdotool := exec.Command("ydotool")
+
+	err := cmdYdotool.Run()
 	if errors.Is(err, exec.ErrNotFound) {
 		log.Fatal("ydotool not found. Get it here: https://github.com/ReimuNotMoe/ydotool")
 	}
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = exec.Command("cb").Run()
-	if errors.Is(err, exec.ErrNotFound) {
-		log.Fatal("cb not found. Get it here: https://github.com/Slackadays/Clipboard")
-	}
-	if err != nil {
-		log.Fatal(err)
+
+	switch strings.ToLower(os.Getenv("XDG_SESSION_TYPE")) {
+	case "wayland":
+		err = exec.Command("wl-copy").Run()
+		if errors.Is(err, exec.ErrNotFound) {
+			log.Fatal("wl-copy not found")
+		}
+	case "x11":
+		err = exec.Command("xclip").Run()
+		if errors.Is(err, exec.ErrNotFound) {
+			log.Fatal("xclip not found")
+		}
+	default:
+		return
 	}
 }
 
