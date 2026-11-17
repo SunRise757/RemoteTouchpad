@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -57,11 +58,17 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	user.CSRTFToken = csrfToken
 	users[username] = user
 
-	fmt.Fprintln(w, "Login successful")
-
+	fmt.Println("Login successful")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":  true,
+		"message":  "Login successful",
+		"rediredt": "touchpad",
+	})
 }
 
 func protectedRouteHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r)
+
 	if r.Method != http.MethodPost {
 		err := http.StatusMethodNotAllowed
 		http.Error(w, "invalid request method", err)

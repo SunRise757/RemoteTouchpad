@@ -5,6 +5,8 @@
 #include <QJsonObject>
 
 #include "Touchpad.h"
+#include "LoginForm.h"
+#include "serverconnection.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -20,6 +22,8 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     Touchpad *touchpad;
+    LoginForm *login;
 private:
     Ui::MainWindow *ui;
+    ServerConnection *serv;
 };

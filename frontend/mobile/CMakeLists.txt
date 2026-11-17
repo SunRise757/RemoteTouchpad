@@ -20,6 +20,10 @@ qt_add_executable(mobile
     views/touchpad/Touchpad.h
     views/touchpad/Touchpad.ui
     
+    views/login/LoginForm.cpp
+    views/login/LoginForm.h
+    views/login/LoginForm.ui
+
     serverconnection.h
     serverconnection.cpp
 )
@@ -36,6 +40,7 @@ target_include_directories(mobile PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/components"
     "${CMAKE_CURRENT_SOURCE_DIR}/views"
+    "${CMAKE_CURRENT_SOURCE_DIR}/views/login"
     "${CMAKE_CURRENT_SOURCE_DIR}/views/touchpad"
 )
 

@@ -10,16 +10,6 @@ Touchpad::Touchpad(QWidget *parent)
 {
     ui->setupUi(this);
 
-    QFont f("Apple Color Emoji");
-    qDebug() << "Requested:" << f.family()
-         << "Resolved:" << QFontInfo(f).family()
-         << "Exact match:" << QFontInfo(f).exactMatch();
-
-
-    //QFont f = ui->lineEdit->font();
-    //f.setFamily("Apple Color Emoji");
-    ui->lineEdit->setFont(f);
-
     connect(ui->buttonLeftClick, &QPushButton::clicked,
         this, [this](){
             //emit ButtonClicked("buttonLeftClick");

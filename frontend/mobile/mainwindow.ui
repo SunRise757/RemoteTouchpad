@@ -18,7 +18,7 @@
   </property>
   <widget class="QStackedWidget" name="stackedWidget">
    <widget class="Touchpad" name="touchpad"/>
-   <widget class="QWidget" name="page_2"/>
+   <widget class="LoginForm" name="login"/>
   </widget>
  </widget>
  <customwidgets>
@@ -26,6 +26,12 @@
    <class>Touchpad</class>
    <extends>QWidget</extends>
    <header>Touchpad.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LoginForm</class>
+   <extends>QWidget</extends>
+   <header>LoginForm.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

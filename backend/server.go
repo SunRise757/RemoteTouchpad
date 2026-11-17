@@ -18,6 +18,7 @@ func launchServer() {
 	mux.HandleFunc("/login", loginHandler)
 	mux.HandleFunc("/logout", logoutHandler)
 	mux.HandleFunc("/protected", protectedRouteHandler)
+	mux.HandleFunc("/ws", wsHandler)
 	mux.Handle("/", http.FileServer(http.Dir(dir)))
 
 	log.Println("Serving app at " + getLanIp() + ":8080")
@@ -26,22 +27,32 @@ func launchServer() {
 
 }
 
+var allowedOrigins = map[string]struct{}{
+	"http://192.168.0.131:8080": {},
+	"http://localhost:8080":     {},
+}
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true
+		origin := r.Header.Get("Origin")
+		_, ok := allowedOrigins[origin]
+		return origin != "" && ok
 	},
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		err := http.StatusMethodNotAllowed
-		http.Error(w, "invalid request method", err)
+
+	username := "admin"
+	user, ok := users[username]
+
+	if !ok {
+		log.Println("username not found")
 		return
 	}
 
-	if err := Authorize(r); err != nil {
-		err := http.StatusUnauthorized
-		http.Error(w, "Unauthorized", err)
+	//Get the Session Token from the Cookie
+	st, err := r.Cookie("session_token")
+	if err != nil || st.Value == "" || st.Value != user.SessionToken {
+		log.Println("session_token check failed ", err, " ", st.Value, " ", user.SessionToken)
 		return
 	}
 
