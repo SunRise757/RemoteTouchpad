@@ -19,9 +19,12 @@ public:
     void logout(QString username);
     void protectedRoute();
     void wsHandle();
+    void clearTokenFromUrl() const;
+    QString registerToken;
 
 signals:
     void loginSuccessful();
+    void registerSuccessful();
 
 private:
     QNetworkAccessManager *manager;
@@ -29,5 +32,6 @@ private:
     QUrl lastConnectedUrl = getWebsocketUrl();
     QUrl getWebsocketUrl();
     QUrl getUrl() const;
+    QString getRegisterToken() const;
     qint64 lastReconnectTime;
 };

@@ -10,9 +10,26 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     touchpad = ui->touchpad;
     login = ui->login;
-    ui->stackedWidget->setCurrentWidget(ui->login);
+    
 
     serv = new ServerConnection(this);
+    if (serv->registerToken.isEmpty())
+        ui->stackedWidget->setCurrentWidget(ui->login);
+    else
+        ui->stackedWidget->setCurrentWidget(ui->registerForm);
+
+    //registerForm
+    connect(ui->registerForm, &RegisterForm::TryToRegister,
+        this, [this](QString username, QString password){
+            serv->registerUser(username, password);
+    });
+    connect(serv, &ServerConnection::registerSuccessful, 
+        this, [this](){
+        serv->clearTokenFromUrl();
+        ui->stackedWidget->setCurrentWidget(ui->login);
+    });
+
+
     //login
     connect(login, &LoginForm::TryToLogin,
         this, [this](QString username, QString password){
@@ -23,8 +40,6 @@ MainWindow::MainWindow(QWidget *parent)
         this, [this](){
         ui->stackedWidget->setCurrentWidget(ui->touchpad);
         serv->wsHandle();
-        //test bullshit deletre later
-        //serv->protectedRoute();
     });
     
 

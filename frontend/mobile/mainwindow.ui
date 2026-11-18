@@ -19,6 +19,7 @@
   <widget class="QStackedWidget" name="stackedWidget">
    <widget class="Touchpad" name="touchpad"/>
    <widget class="LoginForm" name="login"/>
+   <widget class="RegisterForm" name="registerForm"/>
   </widget>
  </widget>
  <customwidgets>
@@ -32,6 +33,12 @@
    <class>LoginForm</class>
    <extends>QWidget</extends>
    <header>LoginForm.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RegisterForm</class>
+   <extends>QWidget</extends>
+   <header>RegisterForm.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

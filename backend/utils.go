@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"log"
 	"net"
-	"os"
 	"strings"
+	"time"
 
 	"github.com/piglig/go-qr/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -53,3 +53,28 @@ func getLanIp() string {
 	return ""
 }
 
+func generateQr(url string) {
+
+	registerToken := generateToken(32)
+	registerTokens[registerToken] = time.Now().Unix()
+
+	code, err := qr.Encode(url + "?registerToken=" + registerToken)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(code)
+	/*
+		style := []qr.RenderOption{
+			qr.WithScale(32),
+			qr.WithModuleShape(qr.ModuleRounded),
+			qr.WithFinderShape(qr.FinderRounded),
+		}
+		png, err := code.PNG(style...)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := os.WriteFile("../build/qr.png", png, 0o644); err != nil {
+			log.Fatal(err)
+		}
+	*/
+}

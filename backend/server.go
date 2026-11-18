@@ -21,10 +21,13 @@ func launchServer() {
 	mux.HandleFunc("/ws", wsHandler)
 	mux.Handle("/", http.FileServer(http.Dir(dir)))
 
-	log.Println("Serving app at " + getLanIp() + ":8080")
+	port := ":8080"
+	log.Println("Serving app at " + getLanIp() + port)
+	generateQr("http://" + getLanIp() + port)
 
 	log.Fatal(http.ListenAndServe(":8080", mux))
 
+	log.Fatal(http.ListenAndServe(port, mux))
 }
 
 var allowedOrigins = map[string]struct{}{
@@ -41,18 +44,9 @@ var upgrader = websocket.Upgrader{
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 
-	username := "admin"
-	user, ok := users[username]
-
-	if !ok {
-		log.Println("username not found")
-		return
-	}
-
-	//Get the Session Token from the Cookie
-	st, err := r.Cookie("session_token")
-	if err != nil || st.Value == "" || st.Value != user.SessionToken {
-		log.Println("session_token check failed ", err, " ", st.Value, " ", user.SessionToken)
+	if err := Authorize(r); err != nil {
+		err := http.StatusUnauthorized
+		http.Error(w, "Unauthorized", err)
 		return
 	}
 

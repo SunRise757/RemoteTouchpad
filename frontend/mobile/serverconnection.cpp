@@ -37,6 +37,7 @@ ServerConnection::ServerConnection(QObject *parent)
     , socket(new QWebSocket())
     , lastReconnectTime(0)
     , lastConnectedUrl(getWebsocketUrl())
+    , registerToken(getRegisterToken())
 {
     
 }
@@ -56,9 +57,82 @@ QUrl ServerConnection::getUrl() const{
     
     return QUrl(QString::fromStdString(protocol + "//" + host));
 }
+QString ServerConnection::getRegisterToken() const {
+    const auto location = emscripten::val::global("location");
+    const auto search = location["search"].as<std::string>(); // e.g. "?token=abc"
+
+    const QUrlQuery query(QUrl(QString::fromStdString(search)));
+    return query.queryItemValue("registerToken", QUrl::FullyDecoded);
+}
+void ServerConnection::clearTokenFromUrl() const {
+    const auto history = emscripten::val::global("history");
+    const auto location = emscripten::val::global("location");
+
+    const auto pathname = location["pathname"].as<std::string>();
+    const auto hash = location["hash"].as<std::string>();
+    const std::string cleanUrl = pathname + hash;
+
+    history.call<void>(
+        "replaceState",
+        emscripten::val::object(),
+        std::string{},
+        cleanUrl
+    );
+}
 
 void ServerConnection::registerUser(QString username, QString password){
+    QUrl url = getUrl();
+    url.setPath("/register");
+    qDebug() << "url = " << url;
+    QNetworkRequest request(url);
 
+    request.setHeader(
+        QNetworkRequest::ContentTypeHeader,
+        "application/x-www-form-urlencoded"
+    );
+    
+    QUrlQuery form;
+    form.addQueryItem("username", username);
+    form.addQueryItem("password", password);
+    form.addQueryItem("registerToken", registerToken);
+    
+    QJsonObject data = QJsonObject{
+        {"username", username}, 
+        {"password", password}, 
+        {"registerToken", registerToken}
+    };
+    
+    QNetworkReply *reply = manager->post(
+        request, 
+        form.query(QUrl::FullyEncoded).toUtf8()
+    );
+    
+    connect(reply, &QNetworkReply::finished, 
+        this, [this, reply]() {
+        
+        if (reply->error() == QNetworkReply::NoError) {
+            
+            QByteArray replyData = reply->readAll();
+            qDebug() << replyData;
+
+            QJsonParseError js;
+            QJsonObject data = QJsonDocument::fromJson(replyData, &js).object();
+            
+            if(js.error){
+                qDebug() << "Error parsing JSON:" << js.errorString();
+            }
+            
+            if (data["success"].toBool()){
+                qDebug() << "Register successful";
+                emit registerSuccessful();
+            }
+            
+        } else {
+            qWarning() << reply->errorString();
+        }
+        reply->deleteLater();
+    });
+    
 }
 
 void ServerConnection::login(QString username, QString password) {
@@ -75,6 +149,7 @@ void ServerConnection::login(QString username, QString password) {
     QUrlQuery form;
     form.addQueryItem("username", username);
     form.addQueryItem("password", password);
+    form.addQueryItem("registerToken", registerToken);
     
     QJsonObject data = QJsonObject{
         {"username", username}, 
@@ -198,7 +273,6 @@ void ServerConnection::wsHandle(){
     socket->open(lastConnectedUrl);
 }
 
-void ServerConnection::tryToReconnect() const{
 void ServerConnection::tryToReconnect(){
     if (socket->state() == QAbstractSocket::ConnectedState && socket->isValid())
         return;

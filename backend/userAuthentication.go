@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -14,10 +15,9 @@ type Login struct {
 }
 
 var users = map[string]Login{}
+var registerTokens = map[string]int64{}
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("request = ")
-	fmt.Println(r)
 	if r.Method != http.MethodPost {
 		err := http.StatusMethodNotAllowed
 		http.Error(w, "Invalid request method", err)
@@ -26,6 +26,8 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
+	registerToken := r.FormValue("registerToken")
+	fmt.Println("token = ", registerToken)
 
 	user, ok := users[username]
 	if !ok || !checkPasswordHash(password, user.HashedPassword) {
@@ -128,6 +130,14 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
+	registerToken := r.FormValue("registerToken")
+
+	if tokenTime, ok := registerTokens[registerToken]; !ok || tokenTime+5*60 < time.Now().Unix() {
+		err := http.StatusUnauthorized
+		http.Error(w, "invalid register token", err)
+		return
+	}
+	delete(registerTokens, registerToken)
 
 	if len(username) < 3 || len(password) < 8 {
 		err := http.StatusNotAcceptable
@@ -144,5 +154,10 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		HashedPassword: hashedPassword,
 	}
 
-	fmt.Fprintln(w, "User registred successfully!")
+	fmt.Println("User registred successfully!")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":  true,
+		"message":  "Register successful",
+		"rediredt": "login",
+	})
 }
