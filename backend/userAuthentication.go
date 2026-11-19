@@ -2,10 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type Login struct {
@@ -14,28 +17,40 @@ type Login struct {
 	CSRTFToken     string
 }
 
-var users = map[string]Login{}
 var registerTokens = map[string]int64{}
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	//get username and password from request
 	if r.Method != http.MethodPost {
 		err := http.StatusMethodNotAllowed
 		http.Error(w, "Invalid request method", err)
 		return
 	}
-
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	registerToken := r.FormValue("registerToken")
-	fmt.Println("token = ", registerToken)
+	//	registerToken := r.FormValue("registerToken")
+	//	fmt.Println("token = ", registerToken)
 
-	user, ok := users[username]
-	if !ok || !checkPasswordHash(password, user.HashedPassword) {
-		err := http.StatusUnauthorized
-		http.Error(w, "Invalid username or password", err)
+	//check db for username and password
+	query := `SELECT password FROM users WHERE username = $1`
+
+	var DBpassword string = ""
+	err := db.QueryRow(ctx, query, username).Scan(&DBpassword)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+			return
+		}
+		log.Fatalf("Failed to execute query %v\n", err)
+		return
+	}
+	if !checkPasswordHash(password, DBpassword) {
+		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
 
+	//generate and set session session_token and csrf_token
 	sessionToken := generateToken(32)
 	csrfToken := generateToken(32)
 
@@ -56,9 +71,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//Store tokens in the database
-	user.SessionToken = sessionToken
-	user.CSRTFToken = csrfToken
-	users[username] = user
+	query = `UPDATE users SET session_token=$1, csrf_token=$2 WHERE username=$3`
+	_, err = db.Exec(ctx, query, sessionToken, csrfToken, username)
+	if err != nil {
+		log.Fatalf("Failed to execute query %v\n", err)
+	}
 
 	fmt.Println("Login successful")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -89,11 +106,13 @@ func protectedRouteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	ctx = r.Context()
 	if err := Authorize(r); err != nil {
 		err := http.StatusUnauthorized
 		http.Error(w, "Unauthorized", err)
 		return
 	}
+	session_token := r.FormValue("session_token")
 
 	// Clear cookie
 	http.SetCookie(w, &http.Cookie{
@@ -111,17 +130,19 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//Clear the tokens from the database
-	username := r.FormValue("username")
-	user, _ := users[username]
-	user.SessionToken = ""
-	user.CSRTFToken = ""
-	users[username] = user
+	query := `UPDATE users SET session_token = NULL, csrf_token = NULL WHERE session_token=$1`
+	_, err := db.Exec(ctx, query, session_token)
+	if err != nil {
+		log.Fatalf("Failed to execute query %v\n", err)
+	}
 
 	fmt.Fprintln(w, "Logged out successfully!")
 
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
+	ctx = r.Context()
+	log.Println("register")
 	if r.Method != http.MethodPost {
 		err := http.StatusMethodNotAllowed
 		http.Error(w, "Invalid method", err)
@@ -137,23 +158,39 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid register token", err)
 		return
 	}
-	delete(registerTokens, registerToken)
-
 	if len(username) < 3 || len(password) < 8 {
 		err := http.StatusNotAcceptable
 		http.Error(w, "invalid username/password", err)
 		return
 	}
-	if _, ok := users[username]; ok {
+
+	//check if username already exists
+	query := `SELECT username FROM users WHERE username = $1`
+	rows, err := db.Query(ctx, query, username)
+	if err != nil {
+		log.Println("1")
+		log.Fatalf("Failed to execute query %v\n", err)
+	}
+	defer rows.Close()
+	if rows.Next() {
 		err := http.StatusConflict
 		http.Error(w, "User already exists", err)
 		return
 	}
+
+	//add user and password to db
+	query = `
+	INSERT INTO users (username, password)
+	VALUES ($1, $2)
+	`
 	hashedPassword, _ := hashPassword(password)
-	users[username] = Login{
-		HashedPassword: hashedPassword,
+	_, err = db.Exec(ctx, query, username, hashedPassword)
+	if err != nil {
+		log.Println("2")
+		log.Fatalf("Failed to execute query %v\n", err)
 	}
 
+	delete(registerTokens, registerToken)
 	fmt.Println("User registred successfully!")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success":  true,

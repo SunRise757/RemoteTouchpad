@@ -9,6 +9,7 @@ import (
 var AuthError = errors.New("Unauthorized")
 
 func Authorize(r *http.Request) error {
+	ctx := r.Context()
 	//Get the Session Token from the Cookie
 	st, err := r.Cookie("session_token")
 
@@ -17,24 +18,14 @@ func Authorize(r *http.Request) error {
 		return AuthError
 	}
 
-	for username, user := range users {
-		if user.SessionToken == st.Value {
-			log.Println(username, "authorised")
-			return nil
-		}
-	}
-
-	log.Println("session_token check failed ", err)
-	return AuthError
-
-	/* websockets cant have custom headers
-	//Get the CSRF token from the headers
-	csrf := r.Header.Get("X-CSRF-Token")
-	if csrf != user.CSRTFToken || csrf == "" {
-		log.Println("csrf_token check failed", csrf, " ", user.CSRTFToken)
+	//check db for cookie
+	var found int
+	query := `SELECT 1 FROM users WHERE session_token = $1`
+	err = db.QueryRow(ctx, query, st.Value).Scan(&found)
+	if err != nil {
+		log.Printf("User not found: %v\n", err)
 		return AuthError
 	}
 
-	*/
-
+	return nil
 }
